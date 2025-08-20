@@ -295,7 +295,7 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
           className="max-w-md leading-relaxed"
           style={{ color: pandaColors.dyingLight }}
         >
-          Select a company and time period, then click analyze to discover trending coding problems with zen-like clarity
+          Select a company and time period, then click analyze to discover trending coding problems 🐼
         </p>
       </div>
     );
