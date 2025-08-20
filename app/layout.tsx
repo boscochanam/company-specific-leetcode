@@ -66,10 +66,32 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="theme-color" content="#d3cac2" />
+        <meta name="apple-mobile-web-app-title" content="Panda LeetCode" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        style={{
+          backgroundColor: '#d3cac2', // Panda agreeable grey
+          minHeight: '100dvh', // Dynamic viewport height for mobile
+        }}
       >
-        {children}
+        <div 
+          style={{
+            backgroundColor: '#d3cac2',
+            minHeight: '100dvh',
+            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            paddingLeft: 'env(safe-area-inset-left)',
+            paddingRight: 'env(safe-area-inset-right)',
+          }}
+        >
+          {children}
+        </div>
       </body>
     </html>
   );

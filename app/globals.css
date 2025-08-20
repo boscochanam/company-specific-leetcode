@@ -114,31 +114,44 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: 'cv03', 'cv04', 'cv11';
-    /* COMPLETELY REMOVE SCROLLBAR */
-    overflow-x: hidden;
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* Internet Explorer 10+ */
-  }
-  
-  /* ENSURE NO SCROLLBAR ON ANY ELEMENT */
-  body::-webkit-scrollbar {
-    display: none; /* WebKit */
-    width: 0 !important;
-    height: 0 !important;
+    border-color: var(--border);
+    outline-color: var(--ring);
+    outline-offset: 2px;
+    outline-width: 2px;
   }
   
   html {
     overflow-x: hidden;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* Internet Explorer 10+ */
+    background-color: #d3cac2; /* Panda agreeable grey */
+    /* iOS specific fixes */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none; /* Prevent pull-to-refresh on iOS */
   }
   
   html::-webkit-scrollbar {
+    display: none; /* WebKit */
+    width: 0 !important;
+    height: 0 !important;
+  }
+  
+  body {
+    background-color: #d3cac2; /* Panda agreeable grey */
+    color: var(--foreground);
+    font-feature-settings: 'cv03', 'cv04', 'cv11';
+    /* COMPLETELY REMOVE SCROLLBAR */
+    overflow-x: hidden;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    /* iOS specific fixes */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none; /* Prevent bounce effect */
+    overscroll-behavior-y: none; /* Specifically prevent vertical bounce */
+  }
+  
+  /* ENSURE NO SCROLLBAR ON ANY ELEMENT */
+  body::-webkit-scrollbar {
     display: none; /* WebKit */
     width: 0 !important;
     height: 0 !important;
@@ -154,6 +167,14 @@
   * {
     scrollbar-width: none !important; /* Firefox */
     -ms-overflow-style: none !important; /* Internet Explorer 10+ */
+  }
+  
+  /* iOS specific fixes for overscroll and safe areas */
+  #__next,
+  [data-nextjs-router],
+  main {
+    background-color: #d3cac2;
+    overscroll-behavior: none;
   }
 }
 
