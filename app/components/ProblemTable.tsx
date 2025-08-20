@@ -30,7 +30,9 @@ import {
   Target,
   TrendingUp,
   CheckCircle2,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Problem } from "../types/problem";
 
@@ -193,6 +195,8 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [topicFilter, setTopicFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20); // Show 20 problems per page
 
   // Get unique difficulties and topics for filters
   const uniqueDifficulties = Array.from(new Set(problems.map(p => p.Difficulty)));
@@ -241,6 +245,33 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
     });
   }, [problems, searchTerm, difficultyFilter, topicFilter, sortField, sortDirection]);
 
+  // Reset to page 1 when filters change
+  const resetPage = () => setCurrentPage(1);
+  
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredAndSortedProblems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProblems = filteredAndSortedProblems.slice(startIndex, endIndex);
+
+  // Update search term and reset page
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    resetPage();
+  };
+
+  // Update difficulty filter and reset page
+  const handleDifficultyChange = (value: string) => {
+    setDifficultyFilter(value);
+    resetPage();
+  };
+
+  // Update topic filter and reset page
+  const handleTopicChange = (value: string) => {
+    setTopicFilter(value);
+    resetPage();
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       if (sortDirection === 'asc') {
@@ -267,6 +298,7 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
     setDifficultyFilter('all');
     setTopicFilter('all');
     setSortField('none');
+    setCurrentPage(1);
   };
 
   if (problems.length === 0) {
@@ -323,7 +355,7 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
               <Input
                 placeholder="Search problems or topics..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10 h-10 sm:h-11 rounded-2xl transition-all duration-300 hover:shadow-lg focus:shadow-xl font-medium text-sm"
                 style={{ 
                   borderColor: pandaColors.tornadoSeason,
@@ -333,7 +365,7 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
               />
             </div>
             
-            <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+            <Select value={difficultyFilter} onValueChange={handleDifficultyChange}>
               <SelectTrigger 
                 className="w-full sm:w-36 lg:w-44 h-10 sm:h-11 rounded-2xl transition-all duration-300 hover:shadow-lg focus:shadow-xl font-medium text-sm"
                 style={{ 
@@ -358,7 +390,7 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
               </SelectContent>
             </Select>
 
-            <Select value={topicFilter} onValueChange={setTopicFilter}>
+            <Select value={topicFilter} onValueChange={handleTopicChange}>
               <SelectTrigger 
                 className="w-full sm:w-40 lg:w-48 h-10 sm:h-11 rounded-2xl transition-all duration-300 hover:shadow-lg focus:shadow-xl font-medium text-sm"
                 style={{ 
@@ -402,9 +434,111 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
         </div>
       </div>
 
-      {/* Zen-Inspired Data Table */}
+      {/* Mobile Card View (sm and below) */}
+      <div className="block md:hidden space-y-4">
+        {paginatedProblems.map((problem, index) => {
+          const difficultyStyle = getDifficultyStyle(problem.Difficulty);
+          const isEven = index % 2 === 0;
+          
+          return (
+            <div
+              key={problem.Title}
+              className="relative overflow-hidden rounded-3xl shadow-lg transition-all duration-300 hover:shadow-xl transform hover:scale-[1.02] p-4"
+              style={{ 
+                backgroundColor: isEven 
+                  ? 'rgba(255, 255, 255, 0.95)' 
+                  : 'rgba(132, 160, 169, 0.08)',
+                border: `2px solid ${pandaColors.tornadoSeason}30`,
+                animationDelay: `${index * 50}ms`
+              }}
+            >
+              {/* Header with Difficulty and Link */}
+              <div className="flex items-center justify-between mb-3">
+                <Badge 
+                  variant="secondary" 
+                  className="transition-all duration-300 hover:shadow-lg font-semibold cursor-default border-2 px-3 py-1 rounded-2xl"
+                  style={{
+                    backgroundColor: difficultyStyle.backgroundColor,
+                    color: difficultyStyle.color,
+                    borderColor: difficultyStyle.borderColor
+                  }}
+                >
+                  {problem.Difficulty}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  asChild
+                  className="h-10 w-10 p-0 transition-all duration-200 rounded-2xl shadow-md hover:shadow-lg transform hover:scale-110"
+                  style={{ 
+                    backgroundColor: 'rgba(132, 160, 169, 0.15)',
+                    color: pandaColors.blackWash
+                  }}
+                >
+                  <a 
+                    href={problem.Link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    title="Open problem on LeetCode"
+                  >
+                    <ExternalLink className="h-5 w-5" />
+                  </a>
+                </Button>
+              </div>
+              
+              {/* Problem Title */}
+              <div className="mb-3">
+                <h3 
+                  className="font-semibold text-base leading-tight transition-colors duration-200 cursor-default hover:font-bold" 
+                  title={problem.Title}
+                  style={{ color: pandaColors.dyingLight }}
+                >
+                  {problem.Title}
+                </h3>
+              </div>
+              
+              {/* Additional Info - Topics (first 2 only) */}
+              <div className="flex flex-wrap gap-2">
+                {problem.Topics.slice(0, 2).map((topic, topicIndex) => {
+                  const topicStyle = getTopicStyle(topicIndex);
+                  return (
+                    <Badge 
+                      key={topic} 
+                      variant="outline" 
+                      className="text-xs transition-all duration-200 cursor-default transform hover:scale-105 font-medium shadow-sm hover:shadow-md border-2 px-2 py-1 rounded-xl"
+                      style={{
+                        color: topicStyle.color,
+                        backgroundColor: topicStyle.backgroundColor,
+                        borderColor: topicStyle.color
+                      }}
+                    >
+                      {topic}
+                    </Badge>
+                  );
+                })}
+                {problem.Topics.length > 2 && (
+                  <Badge 
+                    variant="outline" 
+                    className="text-xs transition-all duration-200 cursor-help transform hover:scale-105 font-medium shadow-sm border-2 px-2 py-1 rounded-xl"
+                    title={problem.Topics.join(', ')}
+                    style={{
+                      backgroundColor: 'rgba(78, 115, 122, 0.1)',
+                      color: pandaColors.tornadoSeason,
+                      borderColor: pandaColors.tornadoSeason
+                    }}
+                  >
+                    +{problem.Topics.length - 2} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table View (md and above) */}
       <div 
-        className="relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-300 hover:shadow-3xl"
+        className="hidden md:block relative overflow-hidden rounded-3xl shadow-2xl transition-all duration-300 hover:shadow-3xl"
         style={{ 
           backgroundColor: 'rgba(255, 255, 255, 0.9)',
           border: `2px solid #4e737a`
@@ -491,7 +625,7 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
               </TableRow>
             </TableHeader>
           <TableBody>
-            {filteredAndSortedProblems.map((problem, index) => {
+            {paginatedProblems.map((problem, index) => {
               const difficultyStyle = getDifficultyStyle(problem.Difficulty);
               const frequencyStyle = getFrequencyStyle(problem.Frequency);
               const acceptanceStyle = getAcceptanceStyle(problem["Acceptance Rate"]);
@@ -642,6 +776,93 @@ export default function ProblemTable({ problems }: { problems: Problem[] }) {
         </Table>
         </div>
       </div>
+
+      {/* Pagination Controls */}
+      {filteredAndSortedProblems.length > 0 && totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-8 p-4 rounded-3xl shadow-lg" 
+          style={{ 
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+            border: `2px solid ${pandaColors.tornadoSeason}30`
+          }}
+        >
+          {/* Results info */}
+          <div className="text-sm font-medium" style={{ color: pandaColors.dyingLight }}>
+            Showing {startIndex + 1}-{Math.min(endIndex, filteredAndSortedProblems.length)} of {filteredAndSortedProblems.length} problems
+          </div>
+          
+          {/* Pagination buttons */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="h-9 w-9 p-0 rounded-2xl transition-all duration-200 hover:shadow-lg"
+              style={{ 
+                borderColor: pandaColors.tornadoSeason,
+                color: currentPage === 1 ? pandaColors.agreeableGrey : pandaColors.dyingLight,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)'
+              }}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            {/* Page numbers */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                
+                const isActive = pageNum === currentPage;
+                
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={isActive ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className="h-9 w-9 p-0 rounded-2xl transition-all duration-200 hover:shadow-lg text-xs font-bold"
+                    style={{ 
+                      borderColor: pandaColors.tornadoSeason,
+                      backgroundColor: isActive 
+                        ? pandaColors.tourmaline 
+                        : 'rgba(255, 255, 255, 0.9)',
+                      color: isActive 
+                        ? 'white' 
+                        : pandaColors.dyingLight
+                    }}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="h-9 w-9 p-0 rounded-2xl transition-all duration-200 hover:shadow-lg"
+              style={{ 
+                borderColor: pandaColors.tornadoSeason,
+                color: currentPage === totalPages ? pandaColors.agreeableGrey : pandaColors.dyingLight,
+                backgroundColor: 'rgba(255, 255, 255, 0.9)'
+              }}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {filteredAndSortedProblems.length === 0 && problems.length > 0 && (
         <div 
